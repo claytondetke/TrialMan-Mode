@@ -458,7 +458,7 @@ public class TrialManModePlugin extends Plugin {
     }
 
     private int convertToBits(int sourceInt) {
-        String binaryString = Integer.toBinaryString(sourceInt);
+        String binaryString = Long.toBinaryString(sourceInt & 0xffffffffL | 0x100000000L ).substring(1);
         return StringUtils.countMatches(binaryString, '1');
     }
 
