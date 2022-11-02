@@ -191,11 +191,44 @@ public interface TrialManModeConfig extends Config {
     }
 
     @ConfigItem(
+            keyName = "includeQuestCompletions",
+            name = "Include quest completions",
+            description = "Gain tiles upon completing a quest based on the difficulty of the quest.",
+            section = tileRulesSection,
+            position = 6
+    )
+    default boolean includeQuestCompletions() {
+        return true;
+    }
+
+    @ConfigItem(
+            keyName = "includeMiniquestCompletions",
+            name = "Include miniquest completions",
+            description = "Gain 25 tiles upon completing a Miniquest.",
+            section = tileRulesSection,
+            position = 7
+    )
+    default boolean includeMiniquestCompletions() {
+        return false;
+    }
+
+    @ConfigItem(
+            keyName = "includeAchievementDiaries",
+            name = "Include achievement diaries",
+            description = "Gain tiles upon completing achievement diary tasks.",
+            section = tileRulesSection,
+            position = 8
+    )
+    default boolean includeAchievementDiaries() {
+        return true;
+    }
+
+    @ConfigItem(
             keyName = "includeExp",
             name = "Include Experience",
             description = "Includes experience / 1000 in usable tiles",
             section = tileRulesSection,
-            position = 6
+            position = 9
     )
     default boolean includeExp() {
         return false;
@@ -209,7 +242,7 @@ public interface TrialManModeConfig extends Config {
             name = "Exp per Tile",
             description = "Determines how much exp you require per tile",
             section = tileRulesSection,
-            position = 7
+            position = 10
     )
     default int expPerTile() {
         return 1000;

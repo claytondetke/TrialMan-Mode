@@ -32,6 +32,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Provides;
 import com.trialmanmode.music.MusicVarPlayers;
+import com.trialmanmode.quests.QuestHelperQuest;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -40,6 +41,7 @@ import net.runelite.api.*;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.events.*;
+import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
@@ -75,6 +77,10 @@ public class TrialManModePlugin extends Plugin {
 
     @Inject
     private Client client;
+
+    @Getter
+    @Inject
+    private ClientThread clientThread;
 
     @Inject
     private TrialManModeConfig config;
@@ -181,7 +187,7 @@ public class TrialManModePlugin extends Plugin {
             return;
         }
         loadPoints();
-        updateTileCounter();
+        clientThread.invoke(this::updateTileCounter);
         inHouse = false;
     }
 
@@ -194,7 +200,7 @@ public class TrialManModePlugin extends Plugin {
             handleWalkedToTile(playerPosLocal);
         }
         lastAutoTilesConfig = config.automarkTiles();
-        updateTileCounter();
+        clientThread.invoke(this::updateTileCounter);
     }
 
 
@@ -219,7 +225,7 @@ public class TrialManModePlugin extends Plugin {
         overlayManager.add(worldMapOverlay);
         overlayManager.add(infoOverlay);
         loadPoints();
-        updateTileCounter();
+        clientThread.invoke(this::updateTileCounter);
         log.debug("startup");
         TrialManModeImportPanel panel = new TrialManModeImportPanel(this);
         NavigationButton navButton = NavigationButton.builder()
@@ -263,11 +269,11 @@ public class TrialManModePlugin extends Plugin {
             handleWalkedToTile(playerPosLocal);
             lastTile = playerPosLocal;
             lastPlane = client.getPlane();
-            updateTileCounter();
+            clientThread.invoke(this::updateTileCounter);
             log.debug("player moved");
             log.debug("last tile={}  distance={}", lastTile, lastTile == null ? "null" : lastTile.distanceTo(playerPosLocal));
         } else if (totalXp != currentTotalXp) {
-            updateTileCounter();
+            clientThread.invoke(this::updateTileCounter);
             totalXp = currentTotalXp;
         }
     }
@@ -494,8 +500,36 @@ public class TrialManModePlugin extends Plugin {
     }
 
     private int unlockedTilesFromQuests() {
-        // TODO: this
-        return 0;
+        int unlockedTiles = 0;
+        if (config.includeQuestCompletions()) {
+            for (QuestHelperQuest quest : QuestHelperQuest.values()) {
+                if (quest.isComplete(client)) {
+                    switch(quest.getDifficulty()) {
+                        case NOVICE:
+                            unlockedTiles += mediumTier;
+                            break;
+                        case INTERMEDIATE:
+                            unlockedTiles += hardTier;
+                            break;
+                        case EXPERIENCED:
+                            unlockedTiles += eliteTier;
+                            break;
+                        case MASTER:
+                            unlockedTiles += masterTier;
+                            break;
+                        case GRANDMASTER:
+                            unlockedTiles += grandmasterTier;
+                            break;
+                        case MINIQUEST:
+                            if (config.includeMiniquestCompletions()) {
+                                unlockedTiles += easyTier;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+        return unlockedTiles;
     }
 
     private int unlockedTilesFromAchievementDiaries() {
@@ -533,7 +567,7 @@ public class TrialManModePlugin extends Plugin {
             Collection<WorldPoint> worldPoint = translateToWorldPoint(getTiles(regionId));
             points.addAll(worldPoint);
         }
-        updateTileCounter();
+        clientThread.invoke(this::updateTileCounter);
     }
 
     private void savePoints(int regionId, Collection<TrialManModeTile> points) {
