@@ -1,4 +1,6 @@
-# TrialMan Mode Custom Plugin 
+# TrialMan Mode Custom Plugin
+TrialMan is a series on youtube, check out the playlist <a href="https://www.youtube.com/playlist?list=PLBKYzLcgOkdBgSPNFosyM0kEBft0wR5dc">here</a>.
+
 The game mode is defined by the player being limited to standing on certain tiles. The amount of tiles you are allowed to stand on depends on the trials you've completed. 
 
 This plugin sets out to make the marking of tiles and the counting of both your used and remaining tiles automated.
