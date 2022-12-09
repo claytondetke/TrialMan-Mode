@@ -31,6 +31,8 @@ import com.google.common.base.Strings;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Provides;
+import com.trialmanmode.achievementdiaries.AchievementDiaryCompletion;
+import com.trialmanmode.achievementdiaries.AchievementDiaryTasks;
 import com.trialmanmode.music.MusicVarPlayers;
 import com.trialmanmode.quests.QuestHelperQuest;
 import lombok.AccessLevel;
@@ -435,7 +437,8 @@ public class TrialManModePlugin extends Plugin {
         unlockedTiles += unlockedTilesFromLevels();
         unlockedTiles += unlockedTilesFromLevelMilestones();
         unlockedTiles += unlockedTilesFromQuests();
-        unlockedTiles += unlockedTilesFromAchievementDiaries();
+        unlockedTiles += unlockedTilesFromAchievementDiaryCompletions();
+        unlockedTiles += unlockedTilesFromAchievementDiaryTasks();
 
         remainingTiles = unlockedTiles - placedTiles;
     }
@@ -532,9 +535,60 @@ public class TrialManModePlugin extends Plugin {
         return unlockedTiles;
     }
 
-    private int unlockedTilesFromAchievementDiaries() {
-        // TODO: this
-        return 0;
+    private int unlockedTilesFromAchievementDiaryCompletions() {
+        int unlockedTiles = 0;
+        if (config.includeAchievementDiaries()) {
+            int totalDiariesCompleted = 0;
+            for (AchievementDiaryCompletion diary : AchievementDiaryCompletion.values()) {
+                if (diary.isComplete(client)) {
+                    totalDiariesCompleted++;
+                    switch(diary.getDifficulty()) {
+                        case EASY:
+                            unlockedTiles += hardTier;
+                            break;
+                        case MEDIUM:
+                            unlockedTiles += eliteTier;
+                            break;
+                        case HARD:
+                            unlockedTiles += masterTier;
+                            break;
+                        case ELITE:
+                            unlockedTiles += grandmasterTier;
+                            break;
+                    }
+                }
+            }
+            // 12 locations, 4 tiers
+            if (totalDiariesCompleted == 48) {
+                unlockedTiles += heroTier;
+            }
+        }
+        return unlockedTiles;
+    }
+
+    private int unlockedTilesFromAchievementDiaryTasks() {
+        int unlockedTiles = 0;
+        if (config.includeAchievementDiaries()) {
+            for (AchievementDiaryTasks task : AchievementDiaryTasks.values()) {
+                if (task.isComplete(client)) {
+                    switch(task.getDifficulty()) {
+                        case EASY:
+                            unlockedTiles += easyTier;
+                            break;
+                        case MEDIUM:
+                            unlockedTiles += mediumTier;
+                            break;
+                        case HARD:
+                            unlockedTiles += hardTier;
+                            break;
+                        case ELITE:
+                            unlockedTiles += eliteTier;
+                            break;
+                    }
+                }
+            }
+        }
+        return unlockedTiles;
     }
 
     private void updateXpUntilNextTile() {
